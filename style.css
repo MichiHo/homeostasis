@@ -1,0 +1,623 @@
+body {
+	font-family: sans-serif;
+	margin: 0px;
+	padding: 0px;
+	box-sizing: border-box;
+	background-color: rgb(var(--main-color-light));
+	background-image: url("background.jpg");
+	background-size: cover;
+	height: 100%;
+	width: 100%;
+	--main-color: 200,100,100;
+	--main-color-light: 227, 178, 178;
+	--main-color-intense: 210, 62, 62;
+}
+#wrapper {
+	box-sizing: border-box;
+	height: 100%;
+	display: flex;
+	overflow-x: hidden;
+	flex-direction: column;
+	margin: 0px;
+	padding: 0px;
+}
+#homeostasis-vis {
+	flex-grow: 1;
+	overflow-y: auto;
+}
+h1{
+	text-align: center;
+	width: 100vw;
+	font-size: 50px;
+	mix-blend-mode: multiply;
+	background-image: url("blackpixel.png");
+  padding: 10px;
+	margin: 0px;
+	color: white;
+	box-sizing: border-box;
+}
+.header-back {
+	margin: 0px;
+	padding:0px;
+	background-color: rgb(var(--main-color-intense));
+}
+
+/* Desc */
+#homeostasis-description {
+	flex-grow: 1;
+	font-size: 24px;
+	max-width: 800px;
+	padding: 0px 20px;
+	margin: auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+}
+#homeostasis-description p:nth-of-type(odd) {
+	text-align: right;
+}
+#homeostasis-description > * {
+	margin: 10px;
+}
+.ctrl-hint {
+	color: rgb(var(--main-color));
+	text-decoration: underline;
+}
+.ctrl-hint:hover {
+	color: rgb(var(--main-color-intense));
+}
+
+/* PLOT */
+#homeostasis-plots{
+	display: flex;
+	flex-direction: column;
+	margin: 20px;
+	position: relative;
+}
+.probs-plot:first-of-type {
+	border-top: solid 15px white;
+}
+.probs-plot {
+	position: relative;
+	border-bottom: solid 15px white;
+}
+.probs-plot.probs-plot-lost-voice {
+	background: rgba(255,100,100,0.7);
+}
+.probs-plot-title {
+	display: none;
+}
+.probs-plot-bar {
+	position: absolute;
+	background-color: #008000;
+	bottom: 0px;
+}
+.probs-plot-axis-label {
+	font-size: 10px;
+	position: absolute;
+}
+.probs-plot-xaxis-max {
+	right:0px;
+	bottom:-15px;
+}
+.probs-plot-xaxis-min {
+	left: 0px;
+	bottom: -15px;
+}
+.probs-plot-yaxis-min {
+	left: -25px;
+	bottom: 0px;
+}
+.probs-plot-yaxis-max {
+	left: -25px;
+	top: 0px;
+}
+.probs-plot-own {
+	position: absolute;
+	background: black;
+	height: 100%;
+	width: 1px;
+	z-index: 10;
+} 
+.probs-plot-xtick {
+	position: absolute;
+	bottom:-5px;
+	height: 5px;
+	width: 1px;
+	background: black;
+}
+.piano-roll {
+	position: absolute;
+	display: block;
+	height: 100%;
+	left: 0px;
+	top: 0px;
+	z-index: -1;
+}
+.piano-roll > div {
+	position: absolute;
+	height: 100%;
+	background: white;
+}
+.piano-roll > div:first-of-type{
+	border-left: none;
+}
+.piano-roll > .black-note {
+	background: rgb(227, 227, 227);
+}
+#keyboard li > span {
+	text-align: center;
+	font-size: 15px;
+	font-weight: bold;
+	color: white;
+	position: absolute;
+	bottom: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+/* CONTROLS */
+#homeostasis-controls {
+	align-items: center;
+	background: rgb(var(--main-color));
+	padding: 0px;
+	left: 0;
+	bottom: 0px;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	user-select: none;
+}
+#homeostasis-controls > * {
+	margin: 5px;
+}
+.controls-sections {
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+}
+.controls-section {
+	position: relative;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	margin-left: 36px;
+	min-height: 168px;
+	max-height: 240px;
+	display: grid;
+	grid-template-columns: repeat(3,auto);
+	border-left: solid 4px rgb(var(--main-color-light));
+	padding: 4px;
+	writing-mode: vertical-lr;
+	background-color: rgb(var(--main-color-light));
+}
+.controls-section-desc {
+	display: none;
+	position: absolute;
+	top: 100%;
+	right: 0%;
+	z-index: 20;
+	background-color: rgb(var(--main-color-light));
+	padding: 5px;
+	margin-left: -4px;
+	pointer-events: none;
+	box-shadow: 0px 10px 10px rgb(var(--main-color));
+}
+.controls-section:hover .controls-section-desc {
+	display: block;
+}
+.controls-section > * {
+	writing-mode: initial;
+}
+#homeostasis-controls-mixer {
+	grid-template-columns: repeat(1,auto);
+}
+.probabilities_widget-key {
+	display: inline-block;
+	height: 200px;
+	box-sizing: border-box;
+	padding: 0px;
+	position: relative;
+	cursor: n-resize;
+}
+.probabilities_widget-key-sep {
+	border-right: solid 1px #0000001c;
+}
+.probabilities_widget-bar {
+	width: 100%;
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	margin: 0px;
+}
+.probabilities_widget-white-key .probabilities_widget-bar{
+	background-color: white;
+}
+.probabilities_widget-black-key .probabilities_widget-bar{
+	background-color: #4f4f4f;
+}
+.ctrl:hover .probabilities_widget-bar{
+	background-color: rgb(var(--main-color-intense));
+	border-right: solid 1px white;
+	box-sizing: border-box;
+}
+.ctrl:hover .probabilities_widget-key-sep .probabilities_widget-bar {
+	border-right: none;
+}
+.probabilities_widget-key-active .probabilities_widget-bar{
+	background-color: rgb(var(--main-color-intense));
+	z-index: 2;
+	box-shadow: 0px 0px 14px #fff;
+}
+.probabilities_widget-key:last-of-type {
+	border-right: none;
+}
+.probabilities_widget-white-key {
+	/*! background-color: #ffffff30; */
+}
+.probabilities_widget-black-key {
+	background-color: rgba(0,0,0,0.3);
+}
+.ctrl.ctrl-probs {
+	width: 300px;
+	height: fit-content;
+	text-align: right;
+}
+.ctrl-probs ul {
+	padding: 0px;
+	margin: 0px;
+}
+.ctrl-probs a {
+	text-align: right;
+	opacity:0.3;
+	text-decoration: underline;
+	font-size: 12px;
+	cursor: pointer;
+	display: inline;
+}
+.ctrl-probs:hover a {
+	opacity: 1.0;
+}
+.ctrl-probs a:hover {
+	color: rgb(var(--main-color));
+}
+
+.controls-section h2 {
+	position: absolute;
+	left: -47px;
+	color: rgb(227, 178, 178);
+	writing-mode: vertical-rl;
+}
+.ctrl {
+	margin-right: 5px;
+	background: rgba(255,255,255, 0.31);
+	min-width: 150px;
+	height: 64px;
+	padding: 4px;
+	flex-direction: column;
+	margin-bottom: 5px;
+	display: inline-block;
+	vertical-align: top;
+	border-radius: 5px;
+	position: relative;
+	box-sizing: border-box;
+}
+.ctrl:hover {
+	background: white;
+}
+.ctrl.ctrl-highlight {
+	background: white;
+	box-shadow: 0px 0px 10px black;
+}
+.ctrl .ctrl-desc {
+	display: none;
+	position: absolute;
+	top: 100%;
+	margin-top: -3px;
+	padding: 3px;
+	padding-top: 8px;
+	border-radius: 0px 0px 5px 5px;
+	text-align: center;
+	box-sizing: border-box;
+	font-size: 12px;
+	left: 0px;
+	z-index: 20;
+	background-color: white;
+	width: 100%;
+	pointer-events: none;
+	box-shadow: 0px 10px 10px rgb(var(--main-color-light));
+}
+.ctrl:hover .ctrl-desc {
+	display: block;
+}
+.ctrl > * {
+	display: block;
+}
+.ctrl span,
+.ctrl label{
+	width: 100%;
+	text-align: center;
+	margin-bottom: 10px;
+}
+.full-width-ctrl {
+	width: 100%;
+	box-sizing: border-box;
+	height: fit-content;
+}
+.ctrl-button {
+	max-width: 70px;
+	min-width: 70px;
+	text-align: center;
+	cursor: pointer;
+}
+.ctrl-button:active {
+	background-color: rgb(var(--main-color));
+	color: white;
+}
+
+
+.hide-icon {
+	font-weight: bold;
+	background: rgb(var(--main-color-light));
+	width: 20px;
+	height: 20px;
+	font-size: 19px;
+	text-align: center;
+	color: rgb(var(--main-color-light));
+	padding: 0px;
+	margin-bottom: 7px;
+	left: -23px;
+	bottom: 4px;
+	/*! transform: rotate(90deg); */
+	display: inline-block;
+}
+h2:hover .hide-icon {
+	color: rgb(var(--main-color));
+}
+h2 {
+	cursor: pointer;
+}
+.hidden > :not(h2) {
+	display: none;
+}
+.controls-section.hidden {
+	padding: 0px;
+}
+.hidden .hide-icon {
+	transform: rotate(180deg);
+}
+
+/* NoUiSlider adjustments */
+.noUi-target {
+	box-shadow: none;
+	border: solid 1px rgba(var(--main-color-light),1);
+}
+.noUi-connect {
+	background-color: rgb(var(--main-color-intense));
+}
+.noUi-marker {
+	background-color: rgb(var(--main-color));
+}
+.noUi-value {
+	font-size: 12px;
+	color: rgb(var(--main-color));
+}
+.noUi-marker-vertical.noUi-marker {
+	height: 1px;
+}
+.noUi-marker-horizontal.noUi-marker {
+	width: 1px;
+}
+.noUi-horizontal {
+	height: 10px;
+}
+.noUi-horizontal .noUi-handle {
+	height: 20px;
+	width: 20px;
+	right: -10px;
+}
+.noUi-handle::after, .noUi-handle::before {
+	height: 10px;
+	top: 4px;
+	left: 6px;
+}
+.noUi-handle::after {
+	left: 10px;
+}
+.noUi-horizontal .noUi-tooltip {
+	bottom: initial;
+	margin-top: -1px;
+	padding: 2px;
+	background: none;
+	border: none;
+	font-size: 13px;
+}
+.noUi-vertical .noUi-handle {
+	width: 70px;
+	right: -48px;
+}
+.noUi-vertical .noUi-tooltip {
+	right: 0px;
+	border: none;
+	background: none;
+	padding: 2px;
+	font-size: 13px;
+}
+
+/* Note range */
+.note-range-slider {
+	flex-grow: 1;
+	display: inline-block;
+	min-width: 250px;
+}
+.note-range-slider .noUi-pips-horizontal {
+	padding-top: 1px;
+	height: 45px;
+}
+.note-range-slider .noUi-value-horizontal {
+	padding-top: 6px;
+}
+.note-range {
+	margin: 0px;
+	padding: 5px 10px 0px 0px;
+	box-sizing: border-box;
+	width: 100%;
+	flex-direction: row;
+	flex-wrap: wrap;
+	display: flex;
+	height: fit-content;
+}
+.note-range-ticked{
+	margin-bottom: 18px;
+}
+.note-range span {
+	width: 75px;
+	padding-right: 5px;
+	display: inline-block;
+}
+.ctrl-wide {
+	width: 600px;
+	box-sizing: border-box;
+	height: fit-content;
+}
+#homeostasis-controls-note-ranges:not(.hidden) {
+	writing-mode: initial;
+	min-height: 0px;
+	height: fit-content;
+}
+.note-range-keyboard {
+	flex-grow: 1;  
+  display: flex;
+  min-width: 250px;
+}
+.note-range-keyboard-display {
+	box-sizing: border-box;
+	display: flex;
+	flex-grow: 1;
+	padding: 0px;
+	overflow: hidden;
+	margin: -25px 0px -10px 0px;
+}
+.note-range-keyboard-display li {
+	display: inline-block;
+	box-sizing: border-box;
+	height: 40px;
+}
+.range-note-white {
+	background-color: #ffffff36;
+}
+.range-note-black {
+	background-color: #00000042;
+}
+.range-note-needs-sep {
+	border-right: solid 1px #00000042;
+}
+.range-note-friend {
+	background-color: green;
+}
+.range-note-lead {
+	background-color: yellow;
+}
+
+/* Gain slider */
+.ctrl.ctrl-gain{
+	min-width: 79px;
+	height: initial;
+}
+.ctrl-gain .slider {
+	height: 150px;
+	margin: 20px 10px;
+}
+.ctrl-gain .noUi-connect {
+	/*! background-color: blue; */
+}
+.ctrl-gain .noUi-marker-large {
+	display: none;
+}
+.ctrl-gain .noUi-value-large {
+	padding-left: 0px;
+}
+.ctrl-gain span {
+	margin-bottom: 0px;
+}
+
+/* Filter slider */
+.ctrl-filter .slider {
+	margin: 10px 12px;
+}
+
+/* Integer picker */
+.ctrl input[type='number'] {
+	font-size: 17px;
+	margin: auto;
+	width: 80px;
+}
+
+
+/* Keyboard */
+#keyboard-wrapper{
+	margin: 0px;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	width: 100%;
+	padding-bottom: 10px;
+	padding-top: 5px;
+	background-color: black;
+}
+
+/* Bottom Controls */
+#bottom-controls {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+	justify-content: space-between;
+	max-width: 400px;
+	margin-top: 10px;
+}
+.bottom-controls-section {
+	background-color: rgb(var(--main-color-light));
+	padding: 4px;
+	/*! border-radius: 0px 0px 4px 4px; */
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	position: relative;
+	box-sizing: border-box;
+	/*! padding-top: 10px; */
+}
+.bottom-controls-section > * {
+	white-space: nowrap;
+}
+.bottom-ctrl {
+  background-color: rgba(255,255,255, 0.31);
+	padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  width: fit-content;
+	display: flex;
+	position: relative;
+}
+.bottom-ctrl:hover {
+	background-color: white;
+}
+.bottom-ctrl.bottom-checkbox {
+	cursor: initial;
+}
+.bottom-ctrl-desc {
+	display: none;
+	position: absolute;
+	padding: 4px;
+	bottom: 100%;
+  left: 0%;
+	font-size: 12px;
+	width: 100%;
+	box-sizing: border-box;
+	background-color: rgb(var(--main-color-light));
+	z-index: 10;
+  pointer-events: none;
+	
+	white-space: initial;
+}
+.bottom-controls-section:hover .bottom-ctrl-desc{
+	display: block
+}

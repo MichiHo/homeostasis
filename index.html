@@ -1,0 +1,195 @@
+<head>
+	<title>HOMEOSTASIS</title>
+	<!-- <link rel="stylesheet" href="includes/nouislider.min.css" /> -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.1/nouislider.css"
+		integrity="sha512-MKxcSu/LDtbIYHBNAWUQwfB3iVoG9xeMCm32QV5hZ/9lFaQZJVaXfz9aFa0IZExWzCpm7OWvp9zq9gVip/nLMg=="
+		crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="style.css" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+	<div id="wrapper">
+		<div class="header-back">
+			<h1>homeostasis</h1>
+		</div>
+		<!-- <div id="homeostasis-vis">
+			<input type='checkbox' value='false' name="ctrl-show-plots" id="ctrl-show-plots">
+			<label for="ctrl-show-plots">show plots</label>
+			<div id="homeostasis-plots"></div>
+		</div> -->
+		<div id="homeostasis-description">
+			<p>
+				You are a single voice in the vastness of
+				<a class="ctrl-hint" data-ctrl-hints="ctrl-keyboard-range"><span class="display-kbd-range">88</span>
+					different notes</a>.
+			</p>
+			<div style="text-align:center;">
+				<img src="keyboard.svg" style="max-width:300px; width:100%">
+			</div>
+			<p>
+				While you can
+				<a class="ctrl-hint" data-ctrl-hints="ctrl-gain-lead ctrl-filter-lead ctrl-glide-lead">change your
+					sound</a>, you would be pretty lost alone.
+			</p>
+			<p>
+				But lucky for you, there are
+				<a class="ctrl-hint" data-ctrl-hints="ctrl-num-voices"><span class="display-num-voices">3</span>
+					friends</a> with you!
+			</p>
+			<p>
+				While they are <a class="ctrl-hint" data-ctrl-hints="ctrl-neighbourhood ctrl-distance-weight">fairly
+					lazy</a> and have a quite <a class="ctrl-hint" data-ctrl-hints="ctrl-probabilities">crooked,
+					statistical
+					notion of harmony</a>, they loyally follow you around wherever you go!
+			</p>
+		</div>
+		<div id="homeostasis-controls">
+			<div class="controls-sections">
+				<div id="homeostasis-controls-mixer" class="controls-section">
+					<h2>mixer</h2>
+					<div class="ctrl ctrl-gain">
+						<div class="slider" id="ctrl-gain-master"></div>
+						<span>Master</span>
+					</div>
+
+					<div class="ctrl ctrl-gain">
+						<div class="slider" id="ctrl-gain-lead"></div>
+						<span>Lead</span>
+					</div>
+					<div class="ctrl ctrl-gain">
+						<div class="slider" id="ctrl-gain-friends"></div>
+						<span>Friends</span>
+					</div>
+					<div class="controls-section-desc">How loud each part should be - <br>the master fader controls the
+						total volume</div>
+				</div>
+				<div id="homeostasis-controls-lead" class="controls-section">
+					<h2>lead</h2>
+					<div class="ctrl ctrl-filter">
+						<span>Filter cutoff</span>
+						<div class="slider" id="ctrl-filter-lead"></div>
+						<div class="ctrl-desc">Center frequency of a low-pass filter, from low (smooth sound) to high
+							(sharp sound)</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Glide</span>
+						<div class="slider" id="ctrl-glide-lead"></div>
+						<div class="ctrl-desc">Transition time between subsequent pitches.</div>
+					</div>
+				</div>
+				<div id="homeostasis-controls-friends" class="controls-section">
+					<h2>friends</h2>
+					<div class="ctrl ctrl-num">
+						<label for="ctrl-num-voices" id="ctrl-num-voices-label">Voices</label>
+						<input type="number" id="ctrl-num-voices" name="ctrl-num-voices" min="0" max="10">
+						<div class="ctrl-desc">The number of other voices.</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Filter cutoff</span>
+						<div class="slider" id="ctrl-filter-friends"></div>
+						<div class="ctrl-desc">Center frequency of a low-pass filter, from low (smooth sound) to high
+							(sharp sound)</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Glide</span>
+						<div class="slider" id="ctrl-glide-friends"></div>
+						<div class="ctrl-desc">Transition time between subsequent pitches</div>
+					</div>
+					<div class="ctrl ctrl-num">
+						<span>Neighbourhood</span>
+						<div class="slider" id="ctrl-neighbourhood"></div>
+						<div class="ctrl-desc">Number of semitones within which each voice looks for the next note, in
+							both directions</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Distance weight</span>
+						<div class="slider" id="ctrl-distance-weight"></div>
+						<div class="ctrl-desc">How strongly each voice favors small intervals - at zero distance does
+							not matter at all, at one notes furthest away are very unlikely</div>
+					</div>
+				</div>
+				<div id="homeostasis-controls-probabilities" class="controls-section">
+					<h2>probabilities</h2>
+					<div class="ctrl ctrl-probs" id="ctrl-probabilities">
+					</div>
+					<div class="controls-section-desc">Probabilities assigned to each interval - relative to the lower C in this
+						diagram, but to any lower note in general during playing </div>
+				</div>
+				<div id="homeostasis-controls-note-ranges" class="controls-section hidden">
+					<h2>ranges</h2>
+					<div class='ctrl ctrl-wide'>
+						<div class='note-range'>
+							<span>Friends:</span>
+							<div class="note-range-slider" id='ctrl-friends-range'></div>
+						</div>
+						<div class='note-range note-range-keyboard'>
+							<span></span>
+							<ul class="note-range-keyboard-display"></ul>
+						</div>
+						<div class='note-range note-range-ticked'>
+							<span>Keyboard:</span>
+							<div class="note-range-slider" id='ctrl-keyboard-range'></div>
+						</div>
+						<div class="ctrl-desc">Ranges within which friend voices select notes or the keyboard is
+							displayed respectively. Keyboard size changes with window size</div>
+					</div>
+					<div class="ctrl ctrl-num">
+						<label for="ctrl-num-octaves" id="ctrl-num-octaves-label">Octaves</label>
+						<input type="number" id="ctrl-num-octaves" name="ctrl-num-octaves" min="2" max="7">
+						<div class="ctrl-desc">Desired number of octaves for this window size - will change on resize
+						</div>
+					</div>
+					<!-- <div class='ctrl note-range'><span>Friends:</span>
+						<div class="note-range-slider" id='ctrl-friends-range'></div>
+					</div>
+
+					<div class='ctrl note-range'><span>Keyboard:</span>
+						<div class="note-range-slider" id='ctrl-keyboard-range'></div>
+					</div> -->
+				</div>
+			</div>
+			<div id="keyboard-wrapper">
+				<div id="keyboard"></div>
+				<div id="bottom-controls">
+					<div class="bottom-controls-section">
+						<span>Reset voices</span>
+						<div class="bottom-btn bottom-ctrl" id="btn-reset-all">all</div>
+						<div class="bottom-checkbox bottom-ctrl" id="ctrl-reset-on-hit">
+							<input type="checkbox" id="chk-reset-on-hit" name="chk-reset-on-hit">
+							<label for="chk-reset-on-hit">on note repetition</label>
+						</div>
+						<div class="bottom-ctrl-desc">Reset some, or all of the friend voices - can also be performed to one friend at a time while repeating the same note</div>
+					</div>
+					<div class="bottom-controls-section">
+						<div class="bottom-btn bottom-ctrl" id="btn-reset-config">Reset full app</div>
+						<div class="bottom-ctrl-desc">Reset all settings to initial values</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Libraries -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/qwerty-hancock/0.10.0/qwerty-hancock.min.js"
+		integrity="sha512-cmXBCIA44cD90t3WeSTkGEARlrV284Z1uttXMVDhtmNcvmPCEj13l+wNIRx+E4e/Y0ZLydtx8trVYJ+WRLtIQA=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdn.jsdelivr.net/npm/deepmerge@4.2.2/dist/umd.js"
+		integrity="sha256-6R8WdbgMQcCUFdsrYpF2zbovnUo51c/VxL3TV+t1dRA=" crossorigin="anonymous"></script>
+	<!-- <script src='includes/deepmerge.js'></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.6.1/nouislider.min.js"
+		integrity="sha512-1mDhG//LAjM3pLXCJyaA+4c+h5qmMoTc7IuJyuNNPaakrWT9rVTxICK4tIizf7YwJsXgDC2JP74PGCc7qxLAHw=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<!-- <script src='includes/nouislider.min.js'></script> -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/wnumb/1.2.0/wNumb.min.js"
+		integrity="sha512-igVQ7hyQVijOUlfg3OmcTZLwYJIBXU63xL9RC12xBHNpmGJAktDnzl9Iw0J4yrSaQtDxTTVlwhY730vphoVqJQ=="
+		crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<!-- <script src='includes/wNumb.min.js'></script> -->
+
+	<!-- Own code -->
+	<script src='utils.js'></script>
+	<!-- <script src='vis.js'></script> -->
+	<script src='probabilities_ui.js'></script>
+	<script src='main.js'></script>
+</body>
