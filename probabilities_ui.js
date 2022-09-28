@@ -32,7 +32,8 @@
 			notes: user_settings.notes || 13,
 			fix_values: user_settings.fix_values || { 0: 0 },
 			first_note: user_settings.first_note || "C",
-			initial_values: user_settings.initial_values || []
+			initial_values: user_settings.initial_values || [],
+			titles: user_settings.titles || []
 		};
 		this.probabilities = []
 
@@ -67,6 +68,8 @@
 			if (black_key) key.classList.add(css_prefix + '-black-key')
 			else key.classList.add(css_prefix + '-white-key')
 			if (needs_sep) key.classList.add(css_prefix+'-key-sep')
+			if (this.settings.titles.length > i) key.title = this.settings.titles[i]
+			if (i in this.settings.fix_values) key.classList.add(css_prefix+'-fixed-key')
 			key.style.width = width
 			this.ul.appendChild(key);
 

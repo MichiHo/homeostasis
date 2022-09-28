@@ -1,41 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 864 192" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-    <rect id="Artboard2" x="0" y="0" width="863.049" height="191.409" style="fill:none;"/>
-    <clipPath id="_clip1">
-        <rect x="0" y="0" width="863.049" height="191.409"/>
-    </clipPath>
-    <g clip-path="url(#_clip1)">
-        <rect x="-0.007" y="-0.746" width="862.359" height="192.837"/>
-        <rect x="6.521" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="668.858" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="101.133" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="763.469" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="53.62" y="5.783" width="91.803" height="89.89"/>
-        <rect x="715.957" y="5.783" width="91.803" height="89.89"/>
-        <rect x="195.745" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="290.357" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="384.968" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="479.58" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="574.192" y="5.783" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
-        <rect x="148.474" y="5.783" width="91.803" height="89.89"/>
-        <rect x="337.527" y="5.783" width="91.803" height="89.89"/>
-        <rect x="432.341" y="5.783" width="91.803" height="89.89"/>
-        <rect x="526.785" y="5.783" width="91.803" height="89.89"/>
-        <text x="28.882px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">A</text>
-        <text x="66.211px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">W</text>
-        <text x="170.836px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">E</text>
-        <text x="361.87px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">T</text>
-        <text x="456.684px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">Z</text>
-        <text x="547.414px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">U</text>
-        <text x="734.767px" y="75.991px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">O</text>
-        <text x="123.501px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">S</text>
-        <text x="218.12px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">D</text>
-        <text x="312.738px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">F</text>
-        <text x="407.357px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">G</text>
-        <text x="501.975px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">H</text>
-        <text x="604.173px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">J</text>
-        <text x="691.212px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">K</text>
-        <text x="785.831px" y="164.745px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">L</text>
+<svg width="100%" height="100%" viewBox="0 0 1060 384" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="Artboard2" x="0" y="0" width="1059.54" height="383.07" style="fill:none;"/>
+    <rect x="96.168" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="9.038" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="191.747" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="286.094" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="380.441" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="474.788" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="569.134" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="663.481" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="757.828" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="852.216" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="946.563" y="76.755" width="94.347" height="94.347" style="fill:white;stroke:black;stroke-width:7.25px;"/>
+    <rect x="92.183" y="181.809" width="862.359" height="192.837"/>
+    <rect x="98.712" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="761.048" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="193.323" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="855.66" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="145.811" y="188.338" width="91.803" height="89.89"/>
+    <rect x="808.148" y="188.338" width="91.803" height="89.89"/>
+    <rect x="287.935" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="382.547" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="477.159" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="571.771" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="666.383" y="188.338" width="91.803" height="179.781" style="fill:rgb(235,235,235);"/>
+    <rect x="240.665" y="188.338" width="91.803" height="89.89"/>
+    <rect x="429.717" y="188.338" width="91.803" height="89.89"/>
+    <rect x="524.531" y="188.338" width="91.803" height="89.89"/>
+    <rect x="618.976" y="188.338" width="91.803" height="89.89"/>
+    <text x="121.073px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">A</text>
+    <text x="127.621px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">1</text>
+    <text x="412.864px" y="59.313px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">reset ...</text>
+    <g transform="matrix(1.41171,0,0,1.41171,-673.471,-10027.3)">
+        <text x="507.917px" y="7196.66px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">^</text>
+        <text x="509.313px" y="7218px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:20.661px;">all</text>
     </g>
+    <text x="223.201px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">2</text>
+    <text x="317.548px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">3</text>
+    <text x="411.895px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">4</text>
+    <text x="506.242px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">5</text>
+    <text x="600.588px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">6</text>
+    <text x="694.935px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">7</text>
+    <text x="789.282px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">8</text>
+    <text x="883.67px" y="132.295px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">9</text>
+    <text x="158.401px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">W</text>
+    <text x="263.026px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">E</text>
+    <text x="454.061px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">T</text>
+    <text x="548.874px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">Z</text>
+    <text x="639.604px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">U</text>
+    <text x="826.958px" y="265.546px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;fill:white;">O</text>
+    <text x="215.692px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">S</text>
+    <text x="310.31px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">D</text>
+    <text x="404.929px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">F</text>
+    <text x="499.547px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">G</text>
+    <text x="594.166px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">H</text>
+    <text x="696.364px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">J</text>
+    <text x="783.403px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">K</text>
+    <text x="878.022px" y="340.3px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:70.585px;">L</text>
+    <g transform="matrix(1.41171,0,0,1.41171,264.053,-10027.3)">
+        <text x="505.744px" y="7196.66px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:50px;">0</text>
+        <text x="501.278px" y="7218px" style="font-family:'ArialMT', 'Arial', sans-serif;font-size:20.661px;">(10)</text>
+    </g>
+    <path d="M660.015,35.032L1013.41,35.032C1027.28,35.032 1038.52,46.273 1038.52,60.14L1038.52,60.14" style="fill:none;stroke:black;stroke-width:7.25px;"/>
+    <path d="M385.742,35.032L35.949,35.032C29.29,35.032 22.903,37.677 18.195,42.386C13.486,47.094 10.841,53.481 10.841,60.14C10.841,60.14 10.841,60.14 10.841,60.14" style="fill:none;stroke:black;stroke-width:7.25px;"/>
 </svg>

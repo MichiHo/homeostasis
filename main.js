@@ -1,129 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-// CONFIG
-const probabilities_size = 13;
-function sanitizeConfigInPlace(config) {
-    if (config.friends.probabilities.length != probabilities_size) {
-        console.log("sanitize probs");
-        delete config.friends.probabilities;
-    }
-    config.friends.num = Number(config.friends.num)
-}
-const cookieName = "homeostasisCookie";
-function storeConfig(exdays = 365) {
-    const d = new Date();
-    d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
-    let expires = "expires=" + d.toUTCString();
-    document.cookie =
-        cookieName +
-        "=" +
-        JSON.stringify(config) +
-        ";" +
-        expires +
-        ";path=/; SameSite=Lax";
-    console.log("Stored config:");
-    console.log(config);
-}
-/**
- *
- * @returns loaded config file or empty object if no success
- */
-function loadConfig() {
-    let name = cookieName + "=";
-    let decodedCookie = decodeURIComponent(document.cookie);
-    let ca = decodedCookie.split(";");
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i].trim();
-        if (c.startsWith(name)) {
-            let result = JSON.parse(c.substring(name.length, c.length));
-            sanitizeConfigInPlace(result);
-            console.log("Loaded config");
-            return result;
-        }
-    }
-    return {};
-}
-/**
- * Called on config change through UI - only save
- */
-var configChangeTimer;
-function changedConfig() {
-    clearTimeout(configChangeTimer);
-    configChangeTimer = setTimeout(storeConfig, 500);
-}
-
-const min_midi_note = 20;
-const max_midi_note = 108;
-const modes = ["chords", "glide"];
-
-// Default config
-let config = {
-    gain_lead: 0.2,
-    filter_cutoff_lead: 500.0,
-    filter_cutoff_friends: 400.0,
-    gain_friends: 0.1,
-    gain_master: 1.0,
-    keyboard_start_note: 57, // A3
-    keyboard_size_factor: 300,
-    mode: "glide",
-    default_sound: {
-        attack: 0.02,
-        release: 0.1,
-        glide: 0.0001,
-    },
-    default_friends_sound: {
-        attack: 0.02,
-        release: 0.1,
-        glide: 0.0001,
-    },
-    friends: {
-        min_note: min_midi_note + 24,
-        max_note: max_midi_note - 24,
-        num: 2,
-        neighbourhood: 4,
-        jump_weight: 0.7, // impact of jump width (relative to neighbourhood)
-        //neighbourhood_ext : 10, // for initializing new voices,
-        note_repeat_reset: false,
-        probabilities: normalizeProbs([
-            0,
-            1, //kl sekunde
-            2, //gr sekunde
-            5, //kl terz
-            5, //gr terz
-            7, //quarte
-            1, //tritonus
-            7, //quinte
-            1, //kl sexte
-            5, //gr sexte
-            3, //kl septe
-            2, //gr septe
-            1, //oktae
-        ]),
-    },
-    vis: {
-        friend_plots: false,
-        friend_plot_height: 90,
-    },
-    hidden: {
-
-    }
-};
-const initial_config = deepmerge(config, {})
-
-// Load from cookie and merge with default
-config = deepmerge(initial_config, loadConfig(), {
-    arrayMerge: function (destinationArray, sourceArray, options) {
-        return sourceArray;
-    }, // overwrite arrays instead of concat
-});
-if (modes.indexOf(config.mode) == -1) config.mode = "chords";
-
-///////////////////////////////////////////////////////////////////////////////
 // AUDIO OBJECTS INIT
 
 const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
 const lead_gain = ctx.createGain();
 const friends_gain = ctx.createGain();
+const pre_reverb = ctx.createGain();
+pre_reverb.gain.value = 1.0;
 const master_gain = ctx.createGain();
 
 const lead_filter = ctx.createBiquadFilter();
@@ -133,10 +16,13 @@ const friends_filter = ctx.createBiquadFilter();
 friends_filter.type = "lowpass";
 friends_filter.Q = 5.0;
 
+const reverb = new ReverbSwitcher(ctx, pre_reverb, master_gain)
+
 lead_gain.connect(lead_filter);
-lead_filter.connect(master_gain);
+lead_filter.connect(pre_reverb);
 friends_gain.connect(friends_filter);
-friends_filter.connect(master_gain);
+friends_filter.connect(pre_reverb);
+// pre_reverb connected inside ReverbSwitcher()
 master_gain.connect(ctx.destination);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -158,7 +44,7 @@ const hz_format = wNumb({
     },
 });
 
-// const plots = $("#homeostasis-plots");
+// const plots = $("#plots");
 const gain_slider_prototype = {
     connect: "lower",
     range: {
@@ -222,6 +108,14 @@ const glide_slider_prototype = {
     connect: "lower",
     range: {
         min: 0,
+        max: 1,
+    },
+    tooltips: [wNumb({ suffix: "s", decimals: 2 })],
+};
+const envelope_slider_prototype = {
+    connect: "lower",
+    range: {
+        min: 0.01,
         max: 2,
     },
     tooltips: [wNumb({ suffix: "s", decimals: 2 })],
@@ -241,6 +135,7 @@ cutoff_lead_slider.noUiSlider.on("slide", function (_, handle, val) {
     changedConfig();
 });
 
+// lead voice glide
 const glide_lead_slider = document.getElementById("ctrl-glide-lead");
 noUiSlider.create(glide_lead_slider, {
     ...glide_slider_prototype,
@@ -249,6 +144,30 @@ noUiSlider.create(glide_lead_slider, {
 glide_lead_slider.noUiSlider.on("slide", function (_, handle, val) {
     config.default_sound.glide = val[0];
     main_voice.glide = val[0];
+    changedConfig();
+});
+
+// lead voice attack
+const attack_lead_slider = document.getElementById("ctrl-attack-lead");
+noUiSlider.create(attack_lead_slider, {
+    ...envelope_slider_prototype,
+    start: config.default_sound.attack,
+});
+attack_lead_slider.noUiSlider.on("slide", function (_, handle, val) {
+    config.default_sound.attack = val[0];
+    main_voice.attack = val[0];
+    changedConfig();
+});
+
+// lead voice release
+const release_lead_slider = document.getElementById("ctrl-release-lead");
+noUiSlider.create(release_lead_slider, {
+    ...envelope_slider_prototype,
+    start: config.default_sound.release,
+});
+release_lead_slider.noUiSlider.on("slide", function (_, handle, val) {
+    config.default_sound.release = val[0];
+    main_voice.release = val[0];
     changedConfig();
 });
 
@@ -267,6 +186,7 @@ cutoff_friends_slider.noUiSlider.on("slide", function (_, handle, val) {
     changedConfig();
 });
 
+// friends glide
 const glide_friends_slider = document.getElementById("ctrl-glide-friends");
 noUiSlider.create(glide_friends_slider, {
     ...glide_slider_prototype,
@@ -280,37 +200,91 @@ glide_friends_slider.noUiSlider.on("slide", function (_, handle, val) {
     changedConfig();
 });
 
+// friends voice attack
+const attack_friends_slider = document.getElementById("ctrl-attack-friends");
+noUiSlider.create(attack_friends_slider, {
+    ...envelope_slider_prototype,
+    start: config.default_sound.attack,
+});
+attack_friends_slider.noUiSlider.on("slide", function (_, handle, val) {
+    config.default_friends_sound.attack = val[0];
+    for (let friend of friends) {
+        friend.sound.attack = val[0]
+    }
+    changedConfig();
+});
+
+// friends voice release
+const release_friends_slider = document.getElementById("ctrl-release-friends");
+noUiSlider.create(release_friends_slider, {
+    ...envelope_slider_prototype,
+    start: config.default_sound.release,
+});
+release_friends_slider.noUiSlider.on("slide", function (_, handle, val) {
+    config.default_friends_sound.release = val[0];
+    for (let friend of friends) {
+        friend.sound.release = val[0]
+    }
+    changedConfig();
+});
+
 ///////////////////////////////////////////////////////////////////////////////
 // FRIENDS CONTROLS
 
 function changedNumFriends() {
-    //$("#ctrl-num-voices-label").text(`Voices: ${config.friends.num}`);
     for (let i = friends.length - 1; i >= config.friends.num; i--) {
         // delete excess voices
-        friends[i].sound.stop();
-        $(`#btn-reset-${i}`).remove()
+        friends[i].stop();
+        $(`#btn-reset-${i}`).remove();
         delete friends[i];
     }
     for (let i = friends.length; i < config.friends.num; i++) {
         // add new voices
-        console.log(`Add ${i}`);
         friends.push(new Friend(friends_gain, ctx));
-        let prev_btn
+        let prev_btn;
         if (i == 0) {
-            prev_btn = $('#btn-reset-all')
+            prev_btn = $("#btn-reset-all");
         } else {
-            prev_btn = $(`#btn-reset-${i-1}`)
+            prev_btn = $(`#btn-reset-${i - 1}`);
         }
-        let new_btn = $(`<div class="bottom-btn bottom-ctrl" id="btn-reset-${i}">${i}</div>`)
-        new_btn.on('click',function(ev) {
-            friends[i].note = -1;
-            friends[i].sound.stop();
-        })
+        let new_btn = $(
+            `<div class="bottom-btn bottom-ctrl" id="btn-reset-${i}">${i + 1}</div>`
+        );
+        new_btn.on("click", function (ev) {
+            resetFriend(i)
+        });
         new_btn.insertAfter(prev_btn);
+        if (main_voice.playing) {
+            resetFriend(i); // new voice instantly live!
+        }
     }
     friends = friends.slice(0, config.friends.num);
-    $('.display-num-voices').text((config.friends.num + 0).toFixed(0))
+    let display_text = ""
+    if (config.friends.num < 1) display_text = 'could be friends'
+    else if (config.friends.num == 1) display_text = 'is a friend'
+    else display_text = `are ${config.friends.num} friends`
+    $(".display-num-voices").text(display_text);
+    refreshKeyboardVisualizations()
     // friend_plots()
+}
+function resetFriend(index, play_on = true) {
+    console.log(`Reset friend ${index}`)
+    friends[index].reset(0, play_on);
+    if (play_on && main_voice.playing) {
+        newFriendNotes([index])
+    }
+    refreshKeyboardVisualizations()
+
+}
+function resetFriends(play_on = true) {
+    for (let friend of friends) {
+        friend.reset(0, play_on);
+    }
+    if (play_on && main_voice.playing) {
+        newFriendNotes()
+    }
+    refreshKeyboardVisualizations()
+
 }
 $("#ctrl-num-voices").on("input", function (ev) {
     config.friends.num = Number($(ev.target).val());
@@ -318,22 +292,18 @@ $("#ctrl-num-voices").on("input", function (ev) {
     changedNumFriends();
     changedConfig();
 });
-$('#btn-reset-all').on('click',function(ev) {
+$("#btn-reset-all").on("click", function (ev) {
+    resetFriends(true)
+});
+$("#btn-reset-config").on("click", function (ev) {
     for (let friend of friends) {
-        friend.note = -1;
-        friend.sound.stop();
+        friend.reset();
     }
-})
-$('#btn-reset-config').on('click',function(ev) {
-    for (let friend of friends) {
-        friend.note = -1;
-        friend.sound.stop();
-    }
-    main_voice.stop()
-    config = deepmerge(initial_config,{})
-    applyConfig()
-    changedConfig()
-})
+    main_voice.stop();
+    resetConfig();
+    applyConfig();
+    changedConfig();
+});
 
 const friends_range_slider = document.getElementById("ctrl-friends-range");
 noUiSlider.create(friends_range_slider, {
@@ -347,9 +317,12 @@ noUiSlider.create(friends_range_slider, {
     tooltips: [midiFormat, midiFormat],
 });
 friends_range_slider.noUiSlider.on("slide", function (_, handle, values) {
-    console.log(values);
-    config.friends.min_note = values[0];
-    config.friends.max_note = values[1];
+    config.friends.min_note = Math.floor(values[0]);
+    config.friends.max_note = Math.floor(values[1]);
+    for (let friend of friends) {
+        friend.min_note = config.friends.min_note;
+        friend.max_note = config.friends.max_note;
+    }
     changedConfig();
 });
 $("#ctrl-num-octaves").on("input", function (ev) {
@@ -371,13 +344,14 @@ noUiSlider.create(friends_neighbourhood_slider, {
 friends_neighbourhood_slider.noUiSlider.on("change", function (_, __, values) {
     config.friends.neighbourhood = values[0];
     for (let friend of friends) {
-        friend.neighbourhood = config.friends.neighbourhood
+        friend.neighbourhood = config.friends.neighbourhood;
     }
     changedConfig();
 });
 
-const friends_distance_weight_slider =
-    document.getElementById("ctrl-distance-weight");
+const friends_distance_weight_slider = document.getElementById(
+    "ctrl-distance-weight"
+);
 noUiSlider.create(friends_distance_weight_slider, {
     connect: "lower",
     start: [config.friends.neighbourhood],
@@ -387,19 +361,21 @@ noUiSlider.create(friends_distance_weight_slider, {
     },
     tooltips: [wNumb({ decimals: 2 })],
 });
-friends_distance_weight_slider.noUiSlider.on("change", function (_, __, values) {
-    config.friends.jump_weight = values[0];
-    for (let friend of friends) {
-        friend.jump_weight = config.friends.jump_weight
+friends_distance_weight_slider.noUiSlider.on(
+    "change",
+    function (_, __, values) {
+        config.friends.jump_weight = values[0];
+        for (let friend of friends) {
+            friend.jump_weight = config.friends.jump_weight;
+        }
+        changedConfig();
     }
-    changedConfig();
-});
+);
 
-$("#chk-reset-on-hit").on('change', function (event) {
+$("#chk-reset-on-hit").on("change", function (event) {
     config.friends.note_repeat_reset = event.currentTarget.checked;
     changedConfig();
-})
-
+});
 
 const keyboard_range_slider = document.getElementById("ctrl-keyboard-range");
 noUiSlider.create(keyboard_range_slider, {
@@ -435,19 +411,22 @@ keyboard_range_slider.noUiSlider.on("change", function (_, handle, values) {
 
 // Keyboard range display
 {
-    let ranges_keyboard = $('.note-range-keyboard-display')
-    let width = percent(1.0 / (max_midi_note - min_midi_note))
+    let ranges_keyboard = $(".note-range-keyboard-display");
+    let width = percent(1.0 / (max_midi_note - min_midi_note));
     for (let i = min_midi_note; i < max_midi_note; i++) {
-        let item = $("<li>").attr('id', `range-note-${i}`).css('width', width)
-        let midi = midiToNote(i)
-        if (midi.includes('#')) item.addClass('range-note-black')
-        else item.addClass('range-note-white')
-        if (midi[0] == 'E' || midi[0] == 'B') item.addClass('range-note-needs-sep')
-        item.appendTo(ranges_keyboard)
+        let item = $("<li>").attr("id", `range-note-${i}`).css("width", width);
+        let midi = midiToNote(i);
+        if (midi.includes("#")) item.addClass("range-note-black");
+        else item.addClass("range-note-white");
+        if (midi[0] == "E" || midi[0] == "B") item.addClass("range-note-needs-sep");
+        item.appendTo(ranges_keyboard);
     }
 }
 
-let prob_ui = new ProbabilitiesUI("ctrl-probabilities", { initial_values: initial_config.friends.probabilities });
+let prob_ui = new ProbabilitiesUI("ctrl-probabilities", {
+    initial_values: initial_config.friends.probabilities,
+    titles: ['reference note', 'minor second', 'major second', 'minor third', 'major third', 'fourth', 'tritone', 'fifth', 'minor sixth', 'major sixth', 'minor seventh', 'major seventh', 'octave']
+});
 prob_ui.set_probabilities(config.friends.probabilities);
 prob_ui.on_change = function (probs, i) {
     config.friends.probabilities = probs;
@@ -456,6 +435,90 @@ prob_ui.on_change = function (probs, i) {
     }
     changedConfig();
 };
+
+
+const reverb_amount_slider =
+    document.getElementById("ctrl-reverb-amount");
+noUiSlider.create(reverb_amount_slider, {
+    connect: "lower",
+    start: [config.reverb_amount],
+    range: {
+        min: 0,
+        max: 1,
+    },
+    tooltips: [wNumb({ decimals: 2 })],
+});
+reverb_amount_slider.noUiSlider.on("slide", function (_, __, values) {
+    config.reverb_amount = values[0];
+    reverb.setWetAmount(config.reverb_amount)
+    changedConfig();
+});
+
+// reverb picker TODO
+// $('.ctrl-reverb-choice').removeClass('selected')
+// if (config.reverb_ir in reverb.impulse_responses){
+//     document.getElementById(`ctrl-reverb-choice-${config.reverb_ir}`).classList.add('selected')
+// } else {
+//     document.getElementById('ctrl-reverb-choice-none').classList.add('selected')
+// }
+function changedReverbType() {
+    $('.ctrl-reverb-choice').removeClass('selected')
+    if (config.reverb_ir in reverb.impulse_responses) {
+        document.getElementById(`ctrl-reverb-choice-${config.reverb_ir}`).classList.add('selected')
+    } else {
+        document.getElementById('ctrl-reverb-choice-none').classList.add('selected')
+    }
+}
+{
+    let picker = document.getElementById('ctrl-reverb-type')
+    let button = document.createElement('button')
+    button.textContent = 'None';
+    button.className = 'ctrl-reverb-choice'
+    button.id = 'ctrl-reverb-choice-none'
+    button.onclick = function (ev) {
+        config.reverb_ir = ""
+        reverb.bypass()
+        changedReverbType()
+        changedConfig()
+    }
+    picker.appendChild(button)
+
+    for (let ir_name in reverb.impulse_responses) {
+        console.log(ir_name)
+        button = document.createElement('button')
+        button.textContent = ir_name
+        button.id = `ctrl-reverb-choice-${ir_name}`
+        button.className = 'ctrl-reverb-choice'
+        button.onclick = function (ev) {
+            config.reverb_ir = ir_name
+            reverb.switchImpulseResponse(ir_name).finally(function () {
+                if (reverb.current_impulse_response != config.reverb_ir) {
+                    config.reverb_ir = ""
+                } else {
+                    config.reverb_ir = reverb.current_impulse_response
+                }
+                changedReverbType()
+                changedConfig()
+            })
+        }
+        picker.appendChild(button)
+    }
+
+}
+
+document.body.onkeydown = function (event) {
+    if (event.keyCode === 160) {
+        // reset all
+        console.log("Reset all")
+        resetFriends(true)
+    } else {
+        let friend_num = Number.parseInt(event.key)
+        if (!Number.isNaN(friend_num) && friend_num >= 0 && friend_num <= friends.length) {
+            if (friend_num == 0 && friends.length >= 10) friend_num = 10
+            resetFriend(friend_num - 1, true);
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // BASIC OSCILLATOR
@@ -472,9 +535,6 @@ class Instrument {
         this.outputNode = outputNode;
         this.ctx = ctx;
         this.osc = null;
-
-        this.envelope = ctx.createGain();
-        this.envelope.connect(outputNode);
     }
 
     play(note, gain = 1.0, time = 0) {
@@ -482,18 +542,23 @@ class Instrument {
         let frequency = midiToHertz(note);
 
         if (!this.playing) {
+            this.envelope = ctx.createGain();
+            this.envelope.connect(this.outputNode);
             this.envelope.gain.setValueAtTime(0.0, time);
             this.envelope.gain.linearRampToValueAtTime(gain, time + this.attack);
 
             // new sound
             this.osc = this.ctx.createOscillator();
-            this.osc.frequency.value = frequency;
+            this.osc.frequency.setValueAtTime(frequency, time);
             this.osc.type = this.type;
             this.osc.connect(this.envelope);
             this.osc.start(time);
         } else {
             // glide with frequency AND gain :)
-            this.osc.frequency.linearRampToValueAtTime(frequency, time + this.glide);
+            this.osc.frequency.exponentialRampToValueAtTime(
+                frequency,
+                time + this.glide
+            );
             this.envelope.gain.linearRampToValueAtTime(gain, time + this.glide);
         }
         this.playing = true;
@@ -509,11 +574,14 @@ class Instrument {
         }
     }
 }
+/** Class for friend voice, with own set of settings. */
 class Friend {
     constructor(outputNode, ctx, friendSpec = {}, instrumentSpec = {}) {
         this.latest_probabilities = [];
         this.latest_probabilities_min = 0;
         this.note = 0;
+        this.notes_since_reset = 0;
+        this.avoid_note = -1;
 
         this.probabilities =
             friendSpec.probabilities || [].concat(config.friends.probabilities);
@@ -530,29 +598,29 @@ class Friend {
         );
     }
 
+    /** Decide new note and start playing it. Returns new note. */
     newNote(other_notes, time = 0) {
         /*
-            Look at set of neighbours around prev_note
-            calculate probability and pick best
-            - favor small jumps
-            - favor non-extreme pitches
-            - exclude notes already played
-            */
+                Look at set of neighbours around prev_note
+                calculate probability and pick best
+    
+                Done:
+                - exclude notes already played by other voices
+                - interval probabilities
+                - favor small jumps
+                
+                ToDo (maybe):
+                - favor non-extreme pitches
+                */
 
         let min_note;
         let max_note;
         if (this.note <= 0) {
-            // Infer note from anywhere within the other notes
-            // for (let note of other_notes){
-            //     min_note = Math.min(min_note,note)
-            //     max_note = Math.max(max_note,note)
-            // }
-            // min_note -= config.friends.neighbourhood_ext
-            // max_note += config.friends.neighbourhood_ext
+            // Look everywhere for new note
             min_note = this.min_note;
             max_note = this.max_note;
         } else {
-            // Normal neighbourhood around prev note
+            // Look in neighbourhood around prev note
             min_note = Math.max(this.note - this.neighbourhood, this.min_note);
             max_note = Math.min(this.note + this.neighbourhood, this.max_note);
         }
@@ -564,24 +632,33 @@ class Friend {
         this.latest_probabilities = [];
         for (let note = min_note; note < max_note; note++) {
             let prob = 1.0;
+            if (note == this.avoid_note) {
+                console.log(`Avoid ${note}`)
+                this.latest_probabilities.push(0.0);
+                continue;
+            }
+
             // Interval probabilities
             for (let other of other_notes) {
-                if (other === 0) continue;
+                if (other <= 0) continue;
                 let interv = interval(note, other);
                 while (interv > 12) interv -= 12;
                 if (interv > 0 && interv < this.probabilities.length) {
                     prob *= this.probabilities[interv];
                 } else prob = 0.0;
             }
+
             // Distance probability impact
             if (this.jump_weight > 0.0 && this.note > 0) {
                 prob *=
-                    1.0 - this.jump_weight +
+                    1.0 -
+                    this.jump_weight +
                     (this.jump_weight *
                         (this.neighbourhood - interval(note, this.note))) /
                     this.neighbourhood;
             }
 
+            // Store best note(s)
             if (prob == bestNoteProb) {
                 bestNotes.push(note);
             } else if (prob > bestNoteProb) {
@@ -590,20 +667,33 @@ class Friend {
             }
             this.latest_probabilities.push(prob);
         }
+
+        // Pick one of the best notes
         let bestNote = -1;
         if (bestNotes.length == 1) {
-            bestNote = bestNotes[0]
+            bestNote = bestNotes[0];
         } else if (bestNotes.length > 0) {
             let ind = Math.floor(Math.random() * bestNotes.length);
             bestNote = bestNotes[ind];
         }
         this.note = bestNote;
+        this.avoid_note = -1;
         if (bestNote <= 0) {
-            this.sound.stop()
+            this.sound.stop();
         } else {
             this.sound.play(this.note);
+            this.notes_since_reset++;
         }
         return bestNote;
+    }
+    reset(time = 0, play_on = false, force_new = true) {
+        if (force_new) this.avoid_note = this.note;
+        this.note = -1;
+        if (!play_on) this.sound.stop(time);
+        this.notes_since_reset = 0;
+    }
+    stop(time = 0) {
+        this.sound.stop(time);
     }
 }
 
@@ -616,73 +706,129 @@ var friend_reset_index = -1;
 
 function stopFriends() {
     for (let friend of friends) {
-        friend.sound.stop();
+        friend.stop();
     }
 }
-function resetFriendKeys() {
-    for (let friend of friends) {
-        if (friend.note > 0) {
-            let note_name = midiToNote(friend.note);
-            $(`#${note_name.replace("#", "\\#")}`)
-                .css("background-color", note_name.includes("#") ? "black" : "white")
-                .empty();
-            $(`.note-range-keyboard-display li`).removeClass('range-note-lead').removeClass('range-note-friend')
+
+function refreshKeyboardVisualizations() {
+    if (this.large_notes === undefined) {
+        this.large_notes = $("#keyboard ul li").toArray();
+        this.small_notes = $(`.note-range-keyboard-display li`).toArray();
+    }
+    // Reset small full keyboard visualization
+    for (let obj of this.small_notes) {
+        obj.classList.remove(
+            "range-note-lead",
+            "range-note-friend",
+            "range-note-friend-reset"
+        );
+    }
+    // Reset playable keyboard visualization
+    for (let obj of this.large_notes) {
+        if (obj.getAttribute("data-note-type") == "black") {
+            obj.style.backgroundColor = "black";
+        } else {
+            obj.style.backgroundColor = "white";
         }
+        let span = obj.getElementsByClassName('note-voice')
+        if (span.length == 1) {
+            span[0].remove()
+        }
+    }
+
+    this.small_notes = [];
+    this.large_notes = [];
+
+    let i = -1;
+    for (let friend of friends) {
+        i++;
+        if (friend.note > 0 && friend.sound.playing) {
+            let reset_this = friend.notes_since_reset < 2;
+            // Playable keyboard visualization
+            let large_note = document.getElementById(
+                midiToNote(friend.note)//.replace("#", "\\#")
+            );
+            if (large_note) {
+                large_note.style.backgroundColor = reset_this
+                    ? config.vis.friend_reset_note_color
+                    : config.vis.friend_note_color;
+                let span = document.createElement('span')
+                span.className = 'note-voice'
+                span.textContent = (i + 1).toFixed(0);
+                large_note.appendChild(span);
+                this.large_notes.push(large_note);
+            }
+
+            // Small full keyboard visualization
+            let small_note = document.getElementById(`range-note-${friend.note}`);
+            small_note.classList.add("range-note-friend");
+            small_note.classList.toggle("range-note-friend-reset", reset_this);
+            this.small_notes.push(small_note);
+        }
+    }
+
+    if (main_voice.playing) {
+        // Playable keyboard visualization
+        let large_note = document.getElementById(
+            midiToNote(main_voice.note)
+        );
+        large_note.style.backgroundColor = config.vis.lead_note_color;
+        this.large_notes.push(large_note);
+
+        // Small full keyboard visualization
+        let small_note = document.getElementById(`range-note-${main_voice.note}`);
+        small_note.classList.add("range-note-lead");
+        this.small_notes.push(small_note);
+    }
+}
+function newFriendNotes(indices = null) {
+
+    let notes = [];
+    for (let friend of friends) {
+        notes.push(friend.note);
+    }
+    function update(i) {
+        console.log(`Update ${i}`)
+        let friend = friends[i]
+        notes[i] = last_main_note;
+        let new_note = friend.newNote(notes);
+        notes[i] = new_note;
+    }
+    if (indices !== null) {
+        for (let i of indices) update(i);
+    } else {
+        for (let i = 0; i < friends.length; i++) update(i);
     }
 }
 function keyDownHandler(note_str, frequency) {
     let note = noteToMidi(note_str);
-    console.log(`Note ${note} ${typeof note} (${note_str}) at ${frequency} Hz`);
     if (config.mode == "chords") {
         main_voice.stop();
         stopFriends();
     }
-    resetFriendKeys();
-
 
     // new lead voice
     main_voice.play(note);
-    $(`#range-note-${note}`).addClass('range-note-lead')
+    $(`#range-note-${note}`).addClass("range-note-lead");
     if (config.friends.num > 0) {
-
         // if same note multiple times, reset random friends
         if (last_main_note == note && config.friends.note_repeat_reset) {
             friend_reset_index = (friend_reset_index + 1) % config.friends.num;
-            friends[friend_reset_index].note = -1;
+            friends[friend_reset_index].reset(0, true)
         } else friend_reset_index = -1;
-
         last_main_note = note;
 
         // friend voices
-        let notes = [];
-        for (let friend of friends) {
-            notes.push(friend.note);
-        }
-        let i = -1;
-        for (let friend of friends) {
-            i++;
-            notes[i] = note;
-            let reset_this = i == friend_reset_index;
-            let new_note = friend.newNote(notes);
-            if (new_note >= 0) {
-                // Playable keyboard visualization
-                $(`#${midiToNote(new_note).replace("#", "\\#")}`)
-                    .css("background-color", reset_this?"lightgreen":"green")
-                    .append(`<span>${i + 1}</span>`);
-
-                // Small full keyboard visualization
-                $(`#range-note-${new_note}`).addClass('range-note-friend').toggleClass('range-note-friend-reset',reset_this);
-            }
-            notes[i] = new_note;
-        }
+        newFriendNotes(null)
         // friend_plots();
     }
+    refreshKeyboardVisualizations();
 }
 function keyUpHandler(note, frequency) {
     if (noteToMidi(note) == main_voice.note) {
         main_voice.stop();
         stopFriends();
-        resetFriendKeys();
+        refreshKeyboardVisualizations();
     }
 }
 
@@ -695,12 +841,12 @@ function keyUpHandler(note, frequency) {
  */
 function findNote(probabilities, other_notes, prev_note = -1) {
     /*
-        Look at set of neighbours around prev_note
-        calculate probability and pick best
-        - favor small jumps
-        - favor non-extreme pitches
-        - exclude notes already played
-        */
+          Look at set of neighbours around prev_note
+          calculate probability and pick best
+          - favor small jumps
+          - favor non-extreme pitches
+          - exclude notes already played
+          */
 
     let min_note;
     let max_note;
@@ -728,10 +874,6 @@ function findNote(probabilities, other_notes, prev_note = -1) {
     max_note = Math.min(
         max_note + config.friends.neighbourhood,
         config.friends.max_note
-    );
-    console.log(
-        `Notes between ${min_note} and ${max_note} (${max_note - min_note
-        } semitones), ${other_notes.length} other notes`
     );
 
     let bestNotes = [];
@@ -774,7 +916,7 @@ function findNote(probabilities, other_notes, prev_note = -1) {
 function applyConfig() {
     // UI Updates
     $("#ctrl-num-voices").val(config.friends.num);
-    $("#chk-reset-on-hit").prop('checked', config.friends.note_repeat_reset);
+    $("#chk-reset-on-hit").prop("checked", config.friends.note_repeat_reset);
     gain_master_slider.noUiSlider.set(linToDb(config.gain_master));
     gain_lead_slider.noUiSlider.set(linToDb(config.gain_lead));
     gain_friends_slider.noUiSlider.set(linToDb(config.gain_friends));
@@ -782,28 +924,42 @@ function applyConfig() {
     cutoff_friends_slider.noUiSlider.set(
         Math.log10(config.filter_cutoff_friends)
     );
-    glide_lead_slider.noUiSlider.set(config.default_sound.glide)
-    glide_friends_slider.noUiSlider.set(config.default_friends_sound.glide)
-    friends_neighbourhood_slider.noUiSlider.set(config.friends.neighbourhood)
-    friends_distance_weight_slider.noUiSlider.set(config.friends.jump_weight)
+    glide_lead_slider.noUiSlider.set(config.default_sound.glide);
+    glide_friends_slider.noUiSlider.set(config.default_friends_sound.glide);
+    attack_lead_slider.noUiSlider.set(config.default_sound.attack)
+    release_lead_slider.noUiSlider.set(config.default_sound.release)
+    attack_friends_slider.noUiSlider.set(config.default_friends_sound.attack)
+    release_friends_slider.noUiSlider.set(config.default_friends_sound.release)
+    friends_neighbourhood_slider.noUiSlider.set(config.friends.neighbourhood);
+    friends_distance_weight_slider.noUiSlider.set(config.friends.jump_weight);
+    reverb_amount_slider.noUiSlider.set(config.reverb_amount);
+    changedReverbType();
     changedNumFriends();
     resizeHandler(); // creates keyboard, sets num-octaves
     // friend_plots();
     prob_ui.set_probabilities(config.friends.probabilities);
-    $('.controls-section').each(function (i, obj) {
-        if (obj.id in config.hidden) {
-            if (config.hidden[obj.id]) {
-                obj.classList.add('hidden')
-            } else {
-                obj.classList.remove('hidden')
-            }
+    $(".controls-section").each(function (i, obj) {
+        if (obj.id in config.hidden && config.hidden[obj.id]) {
+            obj.classList.add("hidden");
         } else {
-            config.hidden[obj.id] = obj.classList.contains('hidden')
+            obj.classList.remove("hidden");
         }
-    })
+    });
+    document.body.style.setProperty(
+        "--lead-note-color",
+        config.vis.lead_note_color
+    );
+    document.body.style.setProperty(
+        "--friend-note-color",
+        config.vis.friend_note_color
+    );
+    document.body.style.setProperty(
+        "--friend-reset-note-color",
+        config.vis.friend_reset_note_color
+    );
 
     // Value updates
-    let t2 = ctx.currentTime + 1.0;
+    let t2 = ctx.currentTime + 0.001;
     lead_gain.gain.linearRampToValueAtTime(config.gain_lead, t2);
     friends_gain.gain.linearRampToValueAtTime(config.gain_friends, t2);
     master_gain.gain.linearRampToValueAtTime(config.gain_master, t2);
@@ -812,16 +968,45 @@ function applyConfig() {
         config.filter_cutoff_friends,
         t2
     );
+    main_voice.glide = config.default_sound.glide
+    main_voice.attack = config.default_sound.attack
+    main_voice.release = config.default_sound.release
+    for (let friend of friends) {
+        friend.sound.glide = config.default_friends_sound.glide
+        friend.sound.attack = config.default_friends_sound.attack
+        friend.sound.release = config.default_friends_sound.release
+
+        friend.jump_weight = config.friends.jump_weight
+        friend.neighbourhood = config.friends.neighbourhood
+        friend.min_note = config.friends.min_note;
+        friend.max_note = config.friends.max_note;
+    }
+    reverb.setWetAmount(config.reverb_amount)
+    reverb.switchImpulseResponse(config.reverb_ir);
 }
 
+
+
+const key_names_map = [
+    'A',
+    'W',
+    'S',
+    'E',
+    'D',
+    'F',
+    'T',
+    'G',
+    'Z/Y',
+    'H',
+    'U',
+    'J',
+    'K',
+    'O',
+    'L',
+]
 function updateKeyboard() {
     delete keyboard;
     $("#keyboard").empty();
-    console.log(
-        `Update keyboard from ${midiToNote(
-            config.keyboard_start_note
-        )} with ${keyboard_octaves} octaves`
-    );
     let new_start_note = midiToNote(config.keyboard_start_note).replace("#", ""); // qwerty-hancock only accepts white keys. Remove sharp
     keyboard = new QwertyHancock({
         id: "keyboard",
@@ -830,15 +1015,41 @@ function updateKeyboard() {
         octaves: keyboard_octaves,
         startNote: new_start_note,
     });
+    // let keymap = keyboard.getKeyMap()
+    // let keymap_better = {}
+    // for (let vk in KeyboardEvent) {
+    //     if (!vk.startsWith('DOM_VK')) continue;
+    //     let key_code = KeyboardEvent[vk]
+
+    //     if (key_code in keymap){
+    //         let note = keymap[key_code]
+    //         keymap_better [vk] = note
+    //     }
+    // }
+    // console.log(keymap_better)
     keyboard.keyDown = keyDownHandler;
     keyboard.keyUp = keyUpHandler;
-    $('.display-kbd-range').text((keyboard_octaves * 12 - 1).toFixed(0))
-    $('#ctrl-num-octaves').val(keyboard_octaves)
+    $(".display-kbd-range").text((keyboard_octaves * 12 - 1).toFixed(0));
+    $("#ctrl-num-octaves").val(keyboard_octaves);
+
+    // Add key codes
+    let first_c = nextC(config.keyboard_start_note);
+    for (let i = 0; i < key_names_map.length; i++) {
+        let note = first_c + i;
+        let key = document.getElementById(midiToNote(note))
+        let span = document.createElement('span')
+        span.textContent = key_names_map[i]
+        span.className = 'note-key'
+        key.appendChild(span)
+    }
+    refreshKeyboardVisualizations();
 }
 
 function resizeHandler() {
     screen_width = $(window).width();
-    keyboard_octaves = Math.floor(clamp((screen_width - 300) / config.keyboard_size_factor, 2, 7));
+    keyboard_octaves = Math.floor(
+        clamp((screen_width - 300) / config.keyboard_size_factor, 2, 7)
+    );
     keyboard_range_slider.noUiSlider.set([
         config.keyboard_start_note,
         config.keyboard_start_note + keyboard_octaves * 12,
@@ -849,11 +1060,10 @@ function resizeHandler() {
 function setDesiredNumOctaves(num) {
     num = clamp(num, 2, 7);
     screen_width = $(window).width();
-    config.keyboard_size_factor = (screen_width - 450) / num;
-    changedConfig()
-    resizeHandler()
+    config.keyboard_size_factor = (screen_width - 300) / num;
+    changedConfig();
+    resizeHandler();
 }
-
 
 var resizeTimer;
 $(window).resize(function () {
@@ -868,49 +1078,81 @@ $(".controls-section").each(function (i, obj) {
         .find("h2")
         .on("click", function (e) {
             obj.classList.toggle("hidden");
-            config.hidden[obj.id] = obj.classList.contains('hidden');
-            changedConfig()
+            config.hidden[obj.id] = obj.classList.contains("hidden");
+            changedConfig();
         })
-        .prepend("<span class='hide-icon'>&#9666;</span>");
+        .prepend("<span class='hide-icon'></span>");
 });
 $(".ctrl-hint").each(function (i, obj) {
     let hints = obj.attributes["data-ctrl-hints"].value.split(" ");
     obj.onmouseenter = function (event) {
         for (let hint of hints) {
             // find ctrl
-            let obj = document.getElementById(hint)
-            while (obj != null && !obj.classList.contains('ctrl')) {
-                obj = obj.parentElement
+            let obj = document.getElementById(hint);
+            while (obj != null && !obj.classList.contains("ctrl")) {
+                obj = obj.parentElement;
             }
             if (obj != null) {
-                obj.classList.add("ctrl-highlight")
+                obj.classList.add("ctrl-highlight");
             }
-            while (obj != null && !obj.classList.contains('controls-section')) {
-                obj = obj.parentElement
+            while (obj != null && !obj.classList.contains("controls-section")) {
+                obj = obj.parentElement;
             }
             if (obj != null && obj.classList.contains("hidden")) {
-                obj.classList.remove("hidden")
-                obj.data_was_hidden = "true"
+                obj.classList.remove("hidden");
+                obj.data_was_hidden = "true";
             }
         }
     };
     obj.onmouseleave = function (event) {
         for (let hint of hints) {
             // find ctrl
-            let obj = document.getElementById(hint)
-            while (obj != null && !obj.classList.contains('ctrl')) {
-                obj = obj.parentElement
+            let obj = document.getElementById(hint);
+            while (obj != null && !obj.classList.contains("ctrl")) {
+                obj = obj.parentElement;
             }
             if (obj != null) {
-                obj.classList.remove("ctrl-highlight")
+                obj.classList.remove("ctrl-highlight");
             }
-            while (obj != null && !obj.classList.contains('controls-section')) {
-                obj = obj.parentElement
+            while (obj != null && !obj.classList.contains("controls-section")) {
+                obj = obj.parentElement;
             }
             if (obj != null && obj.data_was_hidden == "true") {
-                obj.classList.add("hidden")
-                obj.removeAttribute('data-was-hidden')
+                obj.classList.add("hidden");
+                obj.removeAttribute("data-was-hidden");
             }
         }
     };
 });
+
+// Enhance number inputs
+for (let num_ctrl of document.getElementsByClassName('ctrl-num')) {
+    let inputs = num_ctrl.getElementsByTagName('input')
+    if (inputs.length != 1) continue
+    let input = inputs[0]
+
+    let wrapper = document.createElement('div')
+    wrapper.className = 'ctrl-num-wrapper'
+    num_ctrl.appendChild(wrapper)
+
+    let dec_btn = document.createElement('button')
+    dec_btn.className = 'ctrl-num-btn'
+    dec_btn.textContent = '-'
+    dec_btn.onclick = function () {
+        input.value = Math.max(input.valueAsNumber - 1, Number(input.min))
+        console.log(input.value)
+        input.dispatchEvent(new Event('input'))
+    }
+    wrapper.appendChild(dec_btn)
+
+    wrapper.appendChild(input)
+
+    let inc_btn = document.createElement('button')
+    inc_btn.className = 'ctrl-num-btn'
+    inc_btn.textContent = '+'
+    inc_btn.onclick = function () {
+        input.value = Math.min(input.valueAsNumber + 1, Number(input.max))
+        input.dispatchEvent(new Event('input'))
+    }
+    wrapper.appendChild(inc_btn)
+}

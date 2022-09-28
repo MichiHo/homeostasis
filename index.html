@@ -13,40 +13,31 @@
 		<div class="header-back">
 			<h1>homeostasis</h1>
 		</div>
-		<!-- <div id="homeostasis-vis">
+		<!-- <div id="vis">
 			<input type='checkbox' value='false' name="ctrl-show-plots" id="ctrl-show-plots">
 			<label for="ctrl-show-plots">show plots</label>
-			<div id="homeostasis-plots"></div>
+			<div id="plots"></div>
 		</div> -->
-		<div id="homeostasis-description">
+		<div id="part-description">
 			<p>
 				You are a single voice in the vastness of
 				<a class="ctrl-hint" data-ctrl-hints="ctrl-keyboard-range"><span class="display-kbd-range">88</span>
-					different notes</a>.
-			</p>
-			<div style="text-align:center;">
-				<img src="keyboard.svg" style="max-width:300px; width:100%">
-			</div>
-			<p>
-				While you can
-				<a class="ctrl-hint" data-ctrl-hints="ctrl-gain-lead ctrl-filter-lead ctrl-glide-lead">change your
-					sound</a>, you would be pretty lost alone.
+					different notes</a>. While you can
+					<a class="ctrl-hint" data-ctrl-hints="ctrl-gain-lead ctrl-filter-lead ctrl-glide-lead ctrl-attack-lead ctrl-release-lead">change your
+						sound</a>, and <span class="ctrl-hint-inplace ctrl-hint" data-ctrl-hints="ctrl-num-octaves">also use the computer keyboard <span class="ctrl-hint-inplace-hint"><img id="bottom-keyboard-img" src="keyboard.svg" style="height:115px;"></span></span>, you would be pretty lost alone.
 			</p>
 			<p>
-				But lucky for you, there are
-				<a class="ctrl-hint" data-ctrl-hints="ctrl-num-voices"><span class="display-num-voices">3</span>
-					friends</a> with you!
-			</p>
-			<p>
-				While they are <a class="ctrl-hint" data-ctrl-hints="ctrl-neighbourhood ctrl-distance-weight">fairly
+				But lucky for you, there
+				<a class="ctrl-hint" data-ctrl-hints="ctrl-num-voices"><span class="display-num-voices">could be friends</span></a> with you!
+				They are <a class="ctrl-hint" data-ctrl-hints="ctrl-neighbourhood ctrl-distance-weight">fairly
 					lazy</a> and have a quite <a class="ctrl-hint" data-ctrl-hints="ctrl-probabilities">crooked,
 					statistical
-					notion of harmony</a>, they loyally follow you around wherever you go!
+					notion of harmony</a>, but hey - they loyally follow you around wherever you go!
 			</p>
 		</div>
-		<div id="homeostasis-controls">
+		<div id="part-controls">
 			<div class="controls-sections">
-				<div id="homeostasis-controls-mixer" class="controls-section">
+				<div id="controls-mixer" class="controls-section">
 					<h2>mixer</h2>
 					<div class="ctrl ctrl-gain">
 						<div class="slider" id="ctrl-gain-master"></div>
@@ -64,8 +55,8 @@
 					<div class="controls-section-desc">How loud each part should be - <br>the master fader controls the
 						total volume</div>
 				</div>
-				<div id="homeostasis-controls-lead" class="controls-section">
-					<h2>lead</h2>
+				<div id="controls-lead" class="controls-section">
+					<h2>lead sound</h2>
 					<div class="ctrl ctrl-filter">
 						<span>Filter cutoff</span>
 						<div class="slider" id="ctrl-filter-lead"></div>
@@ -75,16 +66,21 @@
 					<div class="ctrl ctrl-filter">
 						<span>Glide</span>
 						<div class="slider" id="ctrl-glide-lead"></div>
-						<div class="ctrl-desc">Transition time between subsequent pitches.</div>
+						<div class="ctrl-desc">Transition time between subsequent pitches</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Attack</span>
+						<div class="slider" id="ctrl-attack-lead"></div>
+						<div class="ctrl-desc">Fade-in time of the sound</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Release</span>
+						<div class="slider" id="ctrl-release-lead"></div>
+						<div class="ctrl-desc">Fade-out time of the sound</div>
 					</div>
 				</div>
-				<div id="homeostasis-controls-friends" class="controls-section">
-					<h2>friends</h2>
-					<div class="ctrl ctrl-num">
-						<label for="ctrl-num-voices" id="ctrl-num-voices-label">Voices</label>
-						<input type="number" id="ctrl-num-voices" name="ctrl-num-voices" min="0" max="10">
-						<div class="ctrl-desc">The number of other voices.</div>
-					</div>
+				<div id="controls-friends" class="controls-section">
+					<h2>friend sound</h2>
 					<div class="ctrl ctrl-filter">
 						<span>Filter cutoff</span>
 						<div class="slider" id="ctrl-filter-friends"></div>
@@ -94,7 +90,25 @@
 					<div class="ctrl ctrl-filter">
 						<span>Glide</span>
 						<div class="slider" id="ctrl-glide-friends"></div>
-						<div class="ctrl-desc">Transition time between subsequent pitches</div>
+						<div class="ctrl-desc">Transition time between subsequent pitches, for each voice individually!</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Attack</span>
+						<div class="slider" id="ctrl-attack-friends"></div>
+						<div class="ctrl-desc">Fade-in time of the sound</div>
+					</div>
+					<div class="ctrl ctrl-filter">
+						<span>Release</span>
+						<div class="slider" id="ctrl-release-friends"></div>
+						<div class="ctrl-desc">Fade-out time of the sound</div>
+					</div>
+				</div>
+				<div id="controls-friend-notes" class="controls-section controls-section-slim">
+					<h2>note picking</h2>
+					<div class="ctrl ctrl-num">
+						<label for="ctrl-num-voices" id="ctrl-num-voices-label">Voices</label>
+						<input type="number" id="ctrl-num-voices" name="ctrl-num-voices" min="0" max="10">
+						<div class="ctrl-desc">The number of other voices.</div>
 					</div>
 					<div class="ctrl ctrl-num">
 						<span>Neighbourhood</span>
@@ -109,14 +123,14 @@
 							not matter at all, at one notes furthest away are very unlikely</div>
 					</div>
 				</div>
-				<div id="homeostasis-controls-probabilities" class="controls-section">
+				<div id="controls-probabilities" class="controls-section controls-section-growing">
 					<h2>probabilities</h2>
 					<div class="ctrl ctrl-probs" id="ctrl-probabilities">
 					</div>
 					<div class="controls-section-desc">Probabilities assigned to each interval - relative to the lower C in this
 						diagram, but to any lower note in general during playing </div>
 				</div>
-				<div id="homeostasis-controls-note-ranges" class="controls-section hidden">
+				<div id="controls-note-ranges" class="controls-section controls-section-growing">
 					<h2>ranges</h2>
 					<div class='ctrl ctrl-wide'>
 						<div class='note-range'>
@@ -135,22 +149,28 @@
 							displayed respectively. Keyboard size changes with window size</div>
 					</div>
 					<div class="ctrl ctrl-num">
-						<label for="ctrl-num-octaves" id="ctrl-num-octaves-label">Octaves</label>
+						<label for="ctrl-num-octaves" id="ctrl-num-octaves-label">Keyboard octaves</label>
 						<input type="number" id="ctrl-num-octaves" name="ctrl-num-octaves" min="2" max="7">
 						<div class="ctrl-desc">Desired number of octaves for this window size - will change on resize
 						</div>
 					</div>
-					<!-- <div class='ctrl note-range'><span>Friends:</span>
-						<div class="note-range-slider" id='ctrl-friends-range'></div>
+				</div>
+				
+				<div id="controls-reverb" class="controls-section controls-section-slim">
+					<h2>reverb</h2>
+					<div class="ctrl ctrl-reverb">
+						<label>Type</label>
+						<div class="ctrl-reverb-picker" id="ctrl-reverb-type"></div>
+						<div class="ctrl-desc">The type of room to emulate</div>
 					</div>
-
-					<div class='ctrl note-range'><span>Keyboard:</span>
-						<div class="note-range-slider" id='ctrl-keyboard-range'></div>
-					</div> -->
+					<div class="ctrl ctrl-filter">
+						<span>Dry/Wet</span>
+						<div class="slider" id="ctrl-reverb-amount"></div>
+						<div class="ctrl-desc">Control ratio between clean and reverberated audio signal. 1.0 means only reverb!</div>
+					</div>
 				</div>
 			</div>
 			<div id="keyboard-wrapper">
-				<div id="keyboard"></div>
 				<div id="bottom-controls">
 					<div class="bottom-controls-section">
 						<span>Reset voices</span>
@@ -159,13 +179,14 @@
 							<input type="checkbox" id="chk-reset-on-hit" name="chk-reset-on-hit">
 							<label for="chk-reset-on-hit">on note repetition</label>
 						</div>
-						<div class="bottom-ctrl-desc">Reset some, or all of the friend voices - can also be performed to one friend at a time while repeating the same note</div>
+						<div class="bottom-ctrl-desc">Reset some, or all of the friend voices - can also be performed to one friend at a time while repeating the same note. Also mapped to numbers on the keyboard (zero resets voice 10 if present), with the key left of 1 resetting all.</div>
 					</div>
 					<div class="bottom-controls-section">
 						<div class="bottom-btn bottom-ctrl" id="btn-reset-config">Reset full app</div>
 						<div class="bottom-ctrl-desc">Reset all settings to initial values</div>
 					</div>
 				</div>
+				<div id="keyboard"></div>
 			</div>
 		</div>
 	</div>
@@ -190,6 +211,8 @@
 	<!-- Own code -->
 	<script src='utils.js'></script>
 	<!-- <script src='vis.js'></script> -->
+	<script src='config.js'></script>
 	<script src='probabilities_ui.js'></script>
+	<script src='reverb.js'></script>
 	<script src='main.js'></script>
 </body>
